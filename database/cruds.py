@@ -1,5 +1,5 @@
 from database.db import SessionManager
-from database.models import User
+from database.models import User, Contest
 
 
 class UserRepo:
@@ -20,3 +20,15 @@ class UserRepo:
                 await session.commit()
                 await session.refresh(user)
         return user
+
+class ContestRepo:
+    def __init__(self, db_session: SessionManager):
+        self.db_session = db_session
+
+    async def create_contest(self, user_id: int, name: str, discription: str, prize: str, max_participants: int) -> Contest:
+        async with self.db_session.get_session() as session:
+            contest = Contest(user_id=user_id, name=name, discription=discription, prize=prize, max_participants=max_participants)
+            session.add(contest)
+            await session.commit()
+            await session.refresh(contest)
+        return contest
