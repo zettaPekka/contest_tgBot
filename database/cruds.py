@@ -6,7 +6,7 @@ class UserRepo:
     def __init__(self, db_session: SessionManager):
         self.db_session = db_session
     
-    async def get_user(self, user_id: int) -> dict | None:
+    async def get_user(self, user_id: int) -> User | None:
         async with self.db_session.get_session() as session:
             user = await session.get(User, user_id)
             return user
@@ -22,7 +22,7 @@ class UserRepo:
         return user
 
 class ContestRepo:
-    def __init__(self, db_session: SessionManager):
+    def __init__(self, db_session: SessionManager) -> None:
         self.db_session = db_session
 
     async def create_contest(self, user_id: int, name: str, discription: str, prize: str, max_participants: int) -> Contest:
@@ -32,3 +32,8 @@ class ContestRepo:
             await session.commit()
             await session.refresh(contest)
         return contest
+
+    async def get_contest(self, contest_id: int) -> Contest | None:
+        async with self.db_session.get_session() as session:
+            contest = await session.get(Contest, contest_id)
+            return
