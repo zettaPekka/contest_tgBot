@@ -18,7 +18,9 @@ class DatabaseInitializer:
 
     @property
     def engine(self):
-        return self._engine
+        if self._engine:
+            return self._engine
+        raise RuntimeError('Database is not initialized')
 
 
 class SessionManager:

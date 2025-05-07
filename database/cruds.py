@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.orm.attributes import flag_modified
 
 from database.db import SessionManager
 from database.models import User, Contest
@@ -29,6 +30,22 @@ class UserRepo:
                 select(Contest).where(Contest.user_id == user_id)
             )
             return contests.scalars().all()
+    
+    async def take_part_in_contest(self, user_id: int, contest_id: int) -> None:
+        async with self.db_session.get_session() as session:
+            user = await session.get(User, user_id)
+            contest = await session.get(Contest, contest_id)
+            if not contest:
+                raise ValueError('Contest not found')
+            if user in contest.participants:
+                raise ValueError('User already in contest')
+            if contest.max_participants != -1 and len(contest.participants) >= contest.max_participants:
+                raise ValueError('Contest is full')
+            user.contests.append(contest)
+            contest.participants.append(user)
+            flag_modified(contest, 'participants')
+            await session.commit()
+            return contest
 
 class ContestRepo:
     def __init__(self, db_session: SessionManager) -> None:

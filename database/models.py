@@ -21,4 +21,5 @@ class Contest(Base):
     discription: Mapped[str]
     prize: Mapped[str]
     max_participants: Mapped[int]
+    participants: Mapped[list[int]] = mapped_column(JSON, default=[])
 
