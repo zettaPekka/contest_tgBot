@@ -63,3 +63,13 @@ class ContestRepo:
         async with self.db_session.get_session() as session:
             contest = await session.get(Contest, contest_id)
             return contest
+    
+    async def edit_contest(self, option: str) -> Contest:
+        ...
+    
+    async def delete_contest(self, contest_id: int) -> None:
+        async with self.db_session.get_session() as session:
+            contest = await session.get(Contest, contest_id)
+            await session.delete(contest)
+            await session.commit()
+            return contest
