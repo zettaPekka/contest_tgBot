@@ -1,18 +1,27 @@
 import asyncio
+from dotenv import load_dotenv
 
 import logging
+import os
 
 from core.init_bot import dp, bot
 from handlers.user_handlers import user_router
+from database.db import DatabaseInitializer, SessionManager
 
 
-
+load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
+
 async def main():
+    db = DatabaseInitializer(os.getenv('DB_PATH'))
+    await db.init_db()
+    
     await bot.delete_webhook(drop_pending_updates=True)
     
     dp.include_router(user_router)
+    db_session = SessionManager(db.engine)
+    dp['db_session'] = db_session
     await dp.start_polling(bot)
 
 if __name__ == '__main__':

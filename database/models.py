@@ -10,7 +10,7 @@ class User(Base):
     __tablename__ = 'users'
     
     user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, unique=True)
-    contests_id: Mapped[list[int]] = mapped_column(JSON, default=[])
+    contests: Mapped[list[int]] = mapped_column(JSON, default=[])
 
 class Contest(Base):
     __tablename__ = 'contests'
