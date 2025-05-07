@@ -1,9 +1,11 @@
+from sqlalchemy import select
+
 from database.db import SessionManager
 from database.models import User, Contest
 
 
 class UserRepo:
-    def __init__(self, db_session: SessionManager):
+    def __init__(self, db_session: SessionManager) -> None:
         self.db_session = db_session
     
     async def get_user(self, user_id: int) -> User | None:
@@ -20,6 +22,13 @@ class UserRepo:
                 await session.commit()
                 await session.refresh(user)
         return user
+    
+    async def get_user_contests(self, user_id: int) -> list[Contest]:
+        async with self.db_session.get_session() as session:
+            contests = await session.execute(
+                select(Contest).where(Contest.user_id == user_id)
+            )
+            return contests.scalars().all()
 
 class ContestRepo:
     def __init__(self, db_session: SessionManager) -> None:
@@ -36,4 +45,4 @@ class ContestRepo:
     async def get_contest(self, contest_id: int) -> Contest | None:
         async with self.db_session.get_session() as session:
             contest = await session.get(Contest, contest_id)
-            return
+            return contest
