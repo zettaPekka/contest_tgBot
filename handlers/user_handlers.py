@@ -4,18 +4,14 @@ from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 
 from states.user_states import CreateContest
-from database.cruds import UserRepo
-from database.db import SessionManager
+# from database.cruds import 
 
 
 user_router = Router()
 
 
 @user_router.message(CommandStart())
-async def start(message: Message, db_session: SessionManager):
-    user_repo = UserRepo(db_session)
-    user = await user_repo.create_user(message.from_user.id)
-    print(user)
+async def start(message: Message):
     await message.answer('<b>Привет! Если ты хочешь организовать честный розыгрыш, используй команду /create или нажми на кнопку ниже и я тебе помогу</b>')
 
 '''
@@ -52,7 +48,8 @@ async def get_max_participants(message: Message, state: FSMContext):
     '''проверка'''
     await state.update_data(max_participants=message.text)
     data = await state.get_data()
-    await message.answer(f'Вы создали розыгрыш с названием: {data["name"]}\nОписание: {data["discription"]}\nПриз: {data["prize"]}\nМаксимальное количество участников: {data["max_participants"]}')
+    await message.answer(f'Вы создали розыгрыш с названием: {data['name']}\nОписание: {data['discription']}\nПриз: {data['prize']}\nМаксимальное количество участников: {data['max_participants']}')
+    await state.clear()
 '''
 EDIT/DELETE CONTEST
 '''

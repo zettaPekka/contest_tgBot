@@ -1,75 +1,42 @@
-from sqlalchemy import select
+from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm.attributes import flag_modified
 
-from database.db import SessionManager
-from database.models import User, Contest
+from database.models import Contest, User
+from database.init_db import engine
 
 
-class UserRepo:
-    def __init__(self, db_session: SessionManager) -> None:
-        self.db_session = db_session
-    
-    async def get_user(self, user_id: int) -> User | None:
-        async with self.db_session.get_session() as session:
-            user = await session.get(User, user_id)
-            return user
-    
-    async def create_user(self, user_id: int) -> User:
-        async with self.db_session.get_session() as session:
-            user = await session.get(User, user_id)
-            if not user:
-                user = User(user_id=user_id)
-                session.add(user)
+async_session = async_sessionmaker(bind=engine)
+
+
+async def add_user_if_not_exists(user_id: int) -> None:
+    async with async_session() as session:
+        user = await session.get(User, user_id)
+        if not user:
+            user = User(user_id=user_id)
+            session.add(user)
+            await session.commit()
+
+async def create_contest(user_id: int, name: str, discription: str, prize: str, max_participants: int):
+    async with async_session() as session:
+        contest = Contest(user_id=user_id, name=name, discription=discription, prize=prize, max_participants=max_participants)
+        session.add(contest)
+        await session.commit()
+
+async def take_part_in_contest(user_id: int, contest_id: int) -> bool:
+    async with async_session() as session:
+        contest = await session.get(Contest, contest_id)
+        if contest:
+            if user_id not in contest.participants:
+                contest.participants.append(user_id)
+                flag_modified(contest, 'participants')
                 await session.commit()
-                await session.refresh(user)
-        return user
-    
-    async def get_user_contests(self, user_id: int) -> list[Contest]:
-        async with self.db_session.get_session() as session:
-            contests = await session.execute(
-                select(Contest).where(Contest.user_id == user_id)
-            )
-            return contests.scalars().all()
-    
-    async def take_part_in_contest(self, user_id: int, contest_id: int) -> None:
-        async with self.db_session.get_session() as session:
-            user = await session.get(User, user_id)
-            contest = await session.get(Contest, contest_id)
-            if not contest:
-                raise ValueError('Contest not found')
-            if user in contest.participants:
-                raise ValueError('User already in contest')
-            if contest.max_participants != -1 and len(contest.participants) >= contest.max_participants:
-                raise ValueError('Contest is full')
-            user.contests.append(contest)
-            contest.participants.append(user)
-            flag_modified(contest, 'participants')
-            await session.commit()
-            return contest
+                return {'status': True}
+            return {'status': False, 'error': 'already in the contest'}
+    return {'status': False, 'error': 'not found'}
 
-class ContestRepo:
-    def __init__(self, db_session: SessionManager) -> None:
-        self.db_session = db_session
-
-    async def create_contest(self, user_id: int, name: str, discription: str, prize: str, max_participants: int) -> Contest:
-        async with self.db_session.get_session() as session:
-            contest = Contest(user_id=user_id, name=name, discription=discription, prize=prize, max_participants=max_participants)
-            session.add(contest)
-            await session.commit()
-            await session.refresh(contest)
-        return contest
-
-    async def get_contest(self, contest_id: int) -> Contest | None:
-        async with self.db_session.get_session() as session:
-            contest = await session.get(Contest, contest_id)
-            return contest
-    
-    async def edit_contest(self, option: str) -> Contest:
-        ...
-    
-    async def delete_contest(self, contest_id: int) -> None:
-        async with self.db_session.get_session() as session:
-            contest = await session.get(Contest, contest_id)
-            await session.delete(contest)
-            await session.commit()
-            return contest
+async def get_user_contests(user_id: int):
+    async with async_session() as session:
+        contests = await session.execute(
+            Contest.select().where(Contest.user_id == user_id)
+        )
+        return contests.scalars().all()
