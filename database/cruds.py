@@ -17,11 +17,13 @@ async def add_user_if_not_exists(user_id: int) -> None:
             session.add(user)
             await session.commit()
 
-async def create_contest(user_id: int, name: str, discription: str, prize: str, max_participants: int):
+async def create_contest(user_id: int, name: str, discription: str, prize: str, max_participants: int) -> Contest:
     async with async_session() as session:
         contest = Contest(user_id=user_id, name=name, discription=discription, prize=prize, max_participants=max_participants)
         session.add(contest)
         await session.commit()
+        await session.refresh(contest)
+    return contest
 
 async def take_part_in_contest(user_id: int, contest_id: int) -> bool:
     async with async_session() as session:

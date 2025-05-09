@@ -1,5 +1,5 @@
 from aiogram import F, Router
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, ContentType
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 
@@ -25,31 +25,40 @@ async def create(message: Message, state: FSMContext):
 
 @user_router.message(CreateContest.name)
 async def get_name(message: Message, state: FSMContext):
-    '''проверка'''
+    if message.content_type != ContentType.TEXT:
+        await message.answer('Введите корректное название')
+        return
     await state.update_data(name=message.text)
     await message.answer('Введите описание розыгрыша')
     await state.set_state(CreateContest.discription)
 
 @user_router.message(CreateContest.discription)
 async def get_discription(message: Message, state: FSMContext):
-    '''проверка'''
+    if message.content_type != ContentType.TEXT:
+        await message.answer('Введите корректное описание')
+        return
     await state.update_data(discription=message.text)
     await message.answer('Введите приз')
     await state.set_state(CreateContest.prize)
 
 @user_router.message(CreateContest.prize)
 async def get_prize(message: Message, state: FSMContext):
-    '''проверка'''
+    if message.content_type != ContentType.TEXT:
+        await message.answer('Введите корректное название приза')
+        return
     await state.update_data(prize=message.text)
     await message.answer('Введите максимальное количество участников, которые могут участвовать в розыгрыше. Чтобы не указывать ограничения укажите -1')
     await state.set_state(CreateContest.max_participants)
 
 @user_router.message(CreateContest.max_participants)
 async def get_max_participants(message: Message, state: FSMContext):
-    '''проверка'''
+    if message.content_type != ContentType.TEXT:
+        await message.answer('Введите корректное кол-во, или -1')
+        return
     await state.update_data(max_participants=message.text)
     data = await state.get_data()
-    await message.answer(f'Вы создали розыгрыш с названием: {data['name']}\nОписание: {data['discription']}\nПриз: {data['prize']}\nМаксимальное количество участников: {data['max_participants']}')
+    contest = await create_contest(message.from_user.id, data['name'], data['discription'], data['prize'], int(data['max_participants']))
+    await message.answer(f'Вы создали розыгрыш с названием: {data['name']}\nОписание: {data['discription']}\nПриз: {data['prize']}\nМаксимальное количество участников: {data['max_participants']}\n\nСсылка на участие в розыгрыше: t.me/{contest.id}')
     await state.clear()
 '''
 EDIT/DELETE CONTEST
