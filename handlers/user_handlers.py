@@ -4,7 +4,7 @@ from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 
 from states.user_states import CreateContest
-# from database.cruds import 
+from database.cruds import add_user_if_not_exists, create_contest, take_part_in_contest, get_user_contests
 
 
 user_router = Router()
@@ -13,6 +13,7 @@ user_router = Router()
 @user_router.message(CommandStart())
 async def start(message: Message):
     await message.answer('<b>Привет! Если ты хочешь организовать честный розыгрыш, используй команду /create или нажми на кнопку ниже и я тебе помогу</b>')
+    await add_user_if_not_exists(message.from_user.id)
 
 '''
 CREATE CONTEST

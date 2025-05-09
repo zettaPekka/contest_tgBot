@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm.attributes import flag_modified
+from sqlalchemy import select
 
 from database.models import Contest, User
 from database.init_db import engine
@@ -34,9 +35,7 @@ async def take_part_in_contest(user_id: int, contest_id: int) -> bool:
             return {'status': False, 'error': 'already in the contest'}
     return {'status': False, 'error': 'not found'}
 
-async def get_user_contests(user_id: int):
+async def get_user_contests(user_id: int) -> list:
     async with async_session() as session:
-        contests = await session.execute(
-            Contest.select().where(Contest.user_id == user_id)
-        )
+        contests = await session.execute(select(Contest).where(Contest.user_id == user_id))
         return contests.scalars().all()
