@@ -50,7 +50,7 @@ async def get_discription(message: Message, state: FSMContext):
     if not await check_message_type(message):
         return  
     await state.update_data(discription=message.text)
-    await message.answer('Введите приз')
+    await message.answer('Введите период розыгрыша в днях. Можно десятичным числом')
     await state.set_state(CreateContest.days)
 
 @user_router.message(CreateContest.days)
@@ -58,7 +58,7 @@ async def get_discription(message: Message, state: FSMContext):
     if not await check_digit(message):
         return  
     await state.update_data(days=message.text)
-    await message.answer('Введите количество дней, в течение которых будет проходить розыгрыш')
+    await message.answer('Введите приз')
     await state.set_state(CreateContest.prize)
 
 @user_router.message(CreateContest.prize)

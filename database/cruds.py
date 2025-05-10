@@ -30,7 +30,6 @@ async def create_contest(user_id: int, name: str, discription: str, prize: str, 
         await session.refresh(contest)
     return contest
 
-
 async def take_part_in_contest(user_id: int, contest_id: int) -> dict:
     async with async_session() as session:
         contest = await session.get(Contest, contest_id)
@@ -57,3 +56,19 @@ async def get_contests_by_participant(user_id: int) -> list:
     async with async_session() as session:
         contests = await session.execute(select(Contest).where(Contest.participants.contains(user_id)))
         return contests.scalars().all()
+
+async def get_users_by_contest(contest_id: int) -> list:
+    async with async_session() as session:
+        contest = await session.get(Contest, contest_id)
+        return contest.participants
+
+async def finish_contest(contest_id: int) -> None:
+    async with async_session() as session:
+        contest = await session.get(Contest, contest_id)
+        await session.delete(contest)
+        await session.commit()
+
+async def get_contest_by_id(contest_id: int) -> Contest | None:
+    async with async_session() as session:
+        contest = await session.get(Contest, contest_id)
+        return contest
