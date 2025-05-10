@@ -16,8 +16,11 @@ user_router = Router()
 async def start(message: Message):
     await add_user_if_not_exists(message.from_user.id)
     if message.text != '/start':
-        contest_id = message.text[7:]
-        print(contest_id)
+        try:
+            contest_id = int(message.text[7:])
+            print(contest_id)
+        except:
+            pass
     await message.answer('<b>Привет! Если ты хочешь организовать честный розыгрыш, используй команду /create или нажми на кнопку ниже и я тебе помогу</b>')
 
 '''
