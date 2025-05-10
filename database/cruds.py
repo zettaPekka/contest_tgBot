@@ -47,7 +47,12 @@ async def take_part_in_contest(user_id: int, contest_id: int) -> dict:
             return {'status': False, 'error': 'already in the contest'}
         return {'status': False, 'error': 'not found'}
 
-async def get_user_contests(user_id: int) -> list:
+async def get_created_contests(user_id: int) -> list:
     async with async_session() as session:
         contests = await session.execute(select(Contest).where(Contest.user_id == user_id))
+        return contests.scalars().all()
+
+async def find_contests_by_participant(user_id: int) -> list:
+    async with async_session() as session:
+        contests = await session.execute(select(Contest).where(user_id in Contest.participants))
         return contests.scalars().all()
