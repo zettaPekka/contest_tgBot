@@ -31,17 +31,21 @@ async def create_contest(user_id: int, name: str, discription: str, prize: str, 
     return contest
 
 
-async def take_part_in_contest(user_id: int, contest_id: int) -> bool:
+async def take_part_in_contest(user_id: int, contest_id: int) -> dict:
     async with async_session() as session:
         contest = await session.get(Contest, contest_id)
         if contest:
-            if user_id not in contest.participants:
+            if user_id not in contest.participants and len(contest.participants) < contest.max_participants:
                 contest.participants.append(user_id)
+                user = await session.get(User, user_id)
+                user.in_contests.append(contest_id)
+                
+                flag_modified(user, 'in_contests')
                 flag_modified(contest, 'participants')
                 await session.commit()
-                return {'status': True}
+                return {'status': True, 'contest': contest}
             return {'status': False, 'error': 'already in the contest'}
-    return {'status': False, 'error': 'not found'}
+        return {'status': False, 'error': 'not found'}
 
 async def get_user_contests(user_id: int) -> list:
     async with async_session() as session:

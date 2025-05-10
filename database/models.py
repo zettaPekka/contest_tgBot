@@ -11,6 +11,7 @@ class User(Base):
     
     user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, unique=True)
     contests: Mapped[list[int]] = mapped_column(JSON, default=[])
+    in_contests: Mapped[list[int]] = mapped_column(JSON, default=[])
 
 class Contest(Base):
     __tablename__ = 'contests'

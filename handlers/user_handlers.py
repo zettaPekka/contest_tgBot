@@ -18,7 +18,13 @@ async def start(message: Message):
     if message.text != '/start':
         try:
             contest_id = int(message.text[7:])
-            print(contest_id)
+            res = await take_part_in_contest(contest_id, message.from_user.id)
+            if res['status'] == True:
+                await message.answer(f'Ты успешно принял участие в розыгрыше {res['contest'].name}!')
+                return
+            else:
+                await message.answer(res['error'])
+                return
         except:
             pass
     await message.answer('<b>Привет! Если ты хочешь организовать честный розыгрыш, используй команду /create или нажми на кнопку ниже и я тебе помогу</b>')
