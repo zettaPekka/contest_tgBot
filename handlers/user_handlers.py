@@ -14,8 +14,11 @@ user_router = Router()
 
 @user_router.message(CommandStart())
 async def start(message: Message):
-    await message.answer('<b>Привет! Если ты хочешь организовать честный розыгрыш, используй команду /create или нажми на кнопку ниже и я тебе помогу</b>')
     await add_user_if_not_exists(message.from_user.id)
+    if message.text != '/start':
+        contest_id = message.text[7:]
+        print(contest_id)
+    await message.answer('<b>Привет! Если ты хочешь организовать честный розыгрыш, используй команду /create или нажми на кнопку ниже и я тебе помогу</b>')
 
 '''
 CREATE CONTEST
@@ -43,7 +46,7 @@ async def get_discription(message: Message, state: FSMContext):
 
 @user_router.message(CreateContest.days)
 async def get_discription(message: Message, state: FSMContext):
-    if not await check_message_type(message):
+    if not await check_digit(message):
         return  
     await state.update_data(days=message.text)
     await message.answer('Введите количество дней, в течение которых будет проходить розыгрыш')
@@ -64,8 +67,8 @@ async def get_max_participants(message: Message, state: FSMContext):
     await state.update_data(max_participants=message.text)
     data = await state.get_data()
     contest = await create_contest(message.from_user.id, data['name'], data['discription'], data['prize'], int(data['max_participants']))
-    await add_contest(contest.id, int(data['days']))
-    await message.answer(f'Вы создали розыгрыш с названием: {data['name']}\nОписание: {data['discription']}\nПриз: {data['prize']}\nМаксимальное количество участников: {data['max_participants']}\nВремя: {data['days']} дней\n\nСсылка на участие в розыгрыше: t.me/{contest.id}')
+    add_contest(contest.id, float(data['days']))
+    await message.answer(f'Вы создали розыгрыш с названием: {data['name']}\nОписание: {data['discription']}\nПриз: {data['prize']}\nМаксимальное количество участников: {data['max_participants']}\nВремя: {data['days']} дней\n\nСсылка на участие в розыгрыше: t.me/contest_official_bot?start={contest.id}')
     await state.clear()
 
 '''
