@@ -6,3 +6,4 @@ class CreateContest(StatesGroup):
     discription = State()
     prize = State()
     max_participants = State()
+    days = State()

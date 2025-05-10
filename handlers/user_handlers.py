@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 
 from states.user_states import CreateContest
 from database.cruds import add_user_if_not_exists, create_contest, take_part_in_contest, get_user_contests
+from database.redis.add_contest import add_contest
 from validate import check_message_type, check_digit
 
 
@@ -38,6 +39,14 @@ async def get_discription(message: Message, state: FSMContext):
         return  
     await state.update_data(discription=message.text)
     await message.answer('Введите приз')
+    await state.set_state(CreateContest.days)
+
+@user_router.message(CreateContest.days)
+async def get_discription(message: Message, state: FSMContext):
+    if not await check_message_type(message):
+        return  
+    await state.update_data(days=message.text)
+    await message.answer('Введите количество дней, в течение которых будет проходить розыгрыш')
     await state.set_state(CreateContest.prize)
 
 @user_router.message(CreateContest.prize)
@@ -55,7 +64,8 @@ async def get_max_participants(message: Message, state: FSMContext):
     await state.update_data(max_participants=message.text)
     data = await state.get_data()
     contest = await create_contest(message.from_user.id, data['name'], data['discription'], data['prize'], int(data['max_participants']))
-    await message.answer(f'Вы создали розыгрыш с названием: {data['name']}\nОписание: {data['discription']}\nПриз: {data['prize']}\nМаксимальное количество участников: {data['max_participants']}\n\nСсылка на участие в розыгрыше: t.me/{contest.id}')
+    await add_contest(contest.id, int(data['days']))
+    await message.answer(f'Вы создали розыгрыш с названием: {data['name']}\nОписание: {data['discription']}\nПриз: {data['prize']}\nМаксимальное количество участников: {data['max_participants']}\nВремя: {data['days']} дней\n\nСсылка на участие в розыгрыше: t.me/{contest.id}')
     await state.clear()
 
 '''
