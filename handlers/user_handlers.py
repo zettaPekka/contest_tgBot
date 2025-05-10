@@ -4,7 +4,7 @@ from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 
 from states.user_states import CreateContest
-from database.cruds import add_user_if_not_exists, create_contest, take_part_in_contest, get_user_contests
+from database.cruds import add_user_if_not_exists, create_contest, take_part_in_contest, get_created_contests, get_contests_by_participant
 from database.redis.add_contest import add_contest
 from validate import check_message_type, check_digit
 
@@ -18,7 +18,7 @@ async def start(message: Message):
     if message.text != '/start':
         try:
             contest_id = int(message.text[7:])
-            res = await take_part_in_contest(contest_id, message.from_user.id)
+            res = await take_part_in_contest(message.from_user.id, contest_id)
             if res['status'] == True:
                 await message.answer(f'Ты успешно принял участие в розыгрыше {res['contest'].name}!')
                 return
@@ -95,4 +95,6 @@ USER DATA
 '''
 @user_router.message(Command('me'))
 async def user_data(message: Message):
-    await message.answer('Ваши розыгрыши: ...')
+    created_contests = await get_created_contests(message.from_user.id)
+    participated_contests = await get_contests_by_participant(message.from_user.id)
+    await message.answer(f'Созданные розыгрыши:\n{'\n'.join([contest_name.name for contest_name in created_contests])}\n\nРозыгрыши, в которые ты принял участие:\n{'\n'.join([contest_name.name for contest_name in participated_contests])}')

@@ -34,6 +34,7 @@ async def create_contest(user_id: int, name: str, discription: str, prize: str, 
 async def take_part_in_contest(user_id: int, contest_id: int) -> dict:
     async with async_session() as session:
         contest = await session.get(Contest, contest_id)
+        print(contest, contest_id)
         if contest:
             if user_id not in contest.participants and len(contest.participants) < contest.max_participants:
                 contest.participants.append(user_id)
@@ -44,15 +45,15 @@ async def take_part_in_contest(user_id: int, contest_id: int) -> dict:
                 flag_modified(contest, 'participants')
                 await session.commit()
                 return {'status': True, 'contest': contest}
-            return {'status': False, 'error': 'already in the contest'}
-        return {'status': False, 'error': 'not found'}
+            return {'status': False, 'error': 'Вы уже учавствуете в этом конкурсе'}
+        return {'status': False, 'error': 'Розыгрыш не найден, возможно он уже завершен'}
 
 async def get_created_contests(user_id: int) -> list:
     async with async_session() as session:
         contests = await session.execute(select(Contest).where(Contest.user_id == user_id))
         return contests.scalars().all()
 
-async def find_contests_by_participant(user_id: int) -> list:
+async def get_contests_by_participant(user_id: int) -> list:
     async with async_session() as session:
-        contests = await session.execute(select(Contest).where(user_id in Contest.participants))
+        contests = await session.execute(select(Contest).where(Contest.participants.contains(user_id)))
         return contests.scalars().all()
