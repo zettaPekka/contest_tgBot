@@ -1,14 +1,12 @@
 import asyncio
-from dotenv import load_dotenv
 
 import logging
-import os
 
 from core.init_bot import dp, bot
 from handlers.user_handlers import user_router
 from database.init_db import init_database
 
-load_dotenv()
+
 logging.basicConfig(level=logging.INFO)
 
 

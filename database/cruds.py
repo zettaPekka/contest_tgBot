@@ -21,9 +21,15 @@ async def create_contest(user_id: int, name: str, discription: str, prize: str, 
     async with async_session() as session:
         contest = Contest(user_id=user_id, name=name, discription=discription, prize=prize, max_participants=max_participants)
         session.add(contest)
-        await session.commit()
         await session.refresh(contest)
+        
+        user = await session.get(User, user_id)
+        user.contests.append(contest.id)
+        flag_modified(user, 'contests') 
+        
+        await session.commit()
     return contest
+
 
 async def take_part_in_contest(user_id: int, contest_id: int) -> bool:
     async with async_session() as session:
